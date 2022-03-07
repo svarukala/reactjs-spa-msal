@@ -52,7 +52,11 @@ export const msalConfig = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 export const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["user.read"]
+};
+
+export const oboRequest = {
+    scopes: ["api://sridev.ngrok.io/c613e0d1-161d-4ea0-9db4-0f11eeabc2fd/access_as_user"]
 };
 
 /**
