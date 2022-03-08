@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
 import { Pivot, PivotItem } from 'office-ui-fabric-react';
-import { loginRequest, oboRequest } from "./authConfig";
+import { graphConfig, loginRequest, oboRequest } from "./authConfig";
 import { PageLayout } from "./components/PageLayout";
 import { ProfileData } from "./components/ProfileData";
 import { callMsGraph } from "./graph";
@@ -17,8 +17,10 @@ import MSGReusable from "./components/MSGReusable";
 const ProfileContent = () => {
     const { instance, accounts } = useMsal();
     const [graphData, setGraphData] = useState(null);
+    const [mailData, setMailData] = useState(null);
     const [ssoToken, setSsoToken] = useState(null);
     const [accessToken, setAccessToken] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {    
 
@@ -30,8 +32,17 @@ const ProfileContent = () => {
             ...loginRequest,
             account: accounts[0]
         }).then((response) => {
-            callMsGraph(response.accessToken).then(response => setGraphData(response));
+            callMsGraph(response.accessToken, graphConfig.graphMeEndpoint).then(response => setGraphData(response));
         });
+    }
+    function RequestMailData() {
+        // Silently acquires an access token which is then attached to a request for MS Graph data
+        instance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0]
+        }).then((response) => {
+            callMsGraph(response.accessToken, graphConfig.graphMailEndpoint).then(response => setMailData(response));
+        }).catch(error => setError(error));
     }
     function RequestTokenForOBOApp() {
         // Silently acquires an access token which is then attached to a request for MS Graph data
@@ -46,11 +57,14 @@ const ProfileContent = () => {
     return (
         <>
             <h5 className="card-title">Welcome {accounts[0].name}</h5>
+            {error && <div className="error">{error.errorMessage}</div>}
+
             {graphData ? 
                 <ProfileData graphData={graphData} />
                 :
                 <Button variant="secondary" onClick={RequestProfileData}>Request Profile Information</Button>
             }
+            
             <br/><br/>
             <Button variant="secondary" onClick={RequestTokenForOBOApp}>Request Token for OBO App</Button>
             {
@@ -92,3 +106,13 @@ export default function App() {
         </PageLayout>
     );
 }
+
+
+/*
+            <br/><br/>
+            {mailData ? 
+                <ProfileData graphData={mailData} />
+                :
+                <Button variant="secondary" onClick={RequestMailData}>Request Mails </Button>
+            }
+*/
