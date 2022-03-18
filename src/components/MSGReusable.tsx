@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { List } from "@fluentui/react-northstar";
+import { collabAppConfig } from '../authConfig';
 
 function MSGReusable(props) {
   // Declare a new state variable, which we'll call "count"
@@ -16,7 +17,12 @@ function MSGReusable(props) {
   }, []);
   
   const getResourceAccessTokenOBO = async () => {
-    fetch(`https://azfun.ngrok.io/api/TeamsOBOHelper?ssoToken=${ssoToken}&tokenFor=msg`).then(async response =>{
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ssoToken }
+    };
+    //fetch(`https://azfun.ngrok.io/api/TeamsOBOHelper?ssoToken=${ssoToken}&tokenFor=msg`).then(async response =>{
+    fetch(collabAppConfig.SPFX_OBOBROKER_URL + `?tokenFor=msg`, requestOptions).then(async response =>{  
         const responsePayload = await response.json();
         if (response.ok) {
             setResourceOboToken(responsePayload.access_token);
@@ -48,7 +54,7 @@ function MSGReusable(props) {
     const getSPOSearchResutls = async () => {
         if (!resourceOboToken) { return; }
 
-        const endpoint = `https://graph.microsoft.com/v1.0/sites?search=Contoso`;
+        const endpoint = collabAppConfig.SPFX_MSG_SEARCHQUERY; //`https://graph.microsoft.com/v1.0/sites?search=Contoso`;
         const requestObject = {
         method: 'GET',
         headers: {
@@ -75,8 +81,10 @@ function MSGReusable(props) {
   return (
     <div>
         {error && "Error: " + error}
-        {ssoToken && "ID Token: " + ssoToken}
+        <br/>
         {searchResults && <List items={searchResults} />}
+        <br/>
+        {ssoToken && "ID Token: " + ssoToken}
     </div>
   );
 }

@@ -56,7 +56,8 @@ export const loginRequest = {
 };
 
 export const oboRequest = {
-    scopes: ["api://sridev.ngrok.io/c613e0d1-161d-4ea0-9db4-0f11eeabc2fd/access_as_user"]
+    scopes: ["api://3271e1a1-0da7-476b-b573-e360600674a9/access_as_user"]
+    //["api://sridev.ngrok.io/c613e0d1-161d-4ea0-9db4-0f11eeabc2fd/access_as_user"]
 };
 
 /**
@@ -67,3 +68,13 @@ export const graphConfig = {
     graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
     graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
 };
+
+export const collabAppConfig = {
+
+SPFX_OBOBROKER_URL: "https://azfun.ngrok.io/api/TeamsOBOHelper",
+
+SPFX_MSG_SEARCHQUERY: "https://graph.microsoft.com/v1.0/sites?search=Contoso",
+
+SPFX_SPO_SEARCHQUERY: "https://m365x229910.sharepoint.com/_api/search/query?querytext=%27*%27&selectproperties=%27Author,Path,Title,Url%27&rowlimit=10"
+
+}

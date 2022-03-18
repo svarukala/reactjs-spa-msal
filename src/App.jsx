@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from "@azure/msal-react";
-import { Pivot, PivotItem } from 'office-ui-fabric-react';
+import { AuthorizationUrlRequest } from "@azure/msal-browser";
+import { Pivot, PivotItem, IPivotStyleProps, IPivotStyles } from 'office-ui-fabric-react';
 import { graphConfig, loginRequest, oboRequest } from "./authConfig";
 import { PageLayout } from "./components/PageLayout";
 import { ProfileData } from "./components/ProfileData";
@@ -14,7 +15,7 @@ import MSGReusable from "./components/MSGReusable";
  * Renders information about the signed-in user or a button to retrieve data about the user
  */
 
-const ProfileContent = () => {
+const CollabContent = () => {
     const { instance, accounts } = useMsal();
     const [graphData, setGraphData] = useState(null);
     const [mailData, setMailData] = useState(null);
@@ -52,8 +53,24 @@ const ProfileContent = () => {
         }).then((response) => {
             setSsoToken(response.idToken);
             setAccessToken(response.accessToken);
+        })
+        .catch((err) => {
+            console.log(err);
+            console.log("Silent Failed");
+            oboRequest.account = accounts[0];
+            instance.acquireTokenPopup(oboRequest).then((tokenResponse) => {
+            setSsoToken(tokenResponse.idToken);
+            setAccessToken(tokenResponse.accessToken);
+          })
+          .catch((error) => {
+            console.error(error);
+            // I haven't implemented redirect but it is fairly easy
+            console.error("Maybe it is a popup blocked error. Implement Redirect");
+            return null;
+          });
         });
     }
+    
     return (
         <>
             <h5 className="card-title">Welcome {accounts[0].name}</h5>
@@ -70,7 +87,7 @@ const ProfileContent = () => {
             {
                 accessToken &&
                 <Pivot aria-label="Basic Pivot Example">
-                    <PivotItem headerText="SPO REST API">
+                    <PivotItem headerText="SPO REST API" backgroundColor="red" >
                         <SPOReusable idToken={accessToken} />
                     </PivotItem>
                     <PivotItem headerText="MS Graph REST API">
@@ -82,6 +99,8 @@ const ProfileContent = () => {
     );
 };
 
+
+
 /**
  * If a user is authenticated the ProfileContent component above is rendered. Otherwise a message indicating a user is not authenticated is rendered.
  */
@@ -90,7 +109,7 @@ const MainContent = () => {
     return (
         <div className="App">
             <AuthenticatedTemplate>
-                <ProfileContent />
+                <CollabContent />
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
                 <h5 className="card-title">Please sign-in to see your profile information.</h5>

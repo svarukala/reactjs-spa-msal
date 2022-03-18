@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { List } from "@fluentui/react-northstar";
+import { graphConfig, loginRequest, oboRequest, collabAppConfig } from "../authConfig";
 
 function SPOReusable(props) {
   // Declare a new state variable, which we'll call "count"
@@ -16,7 +17,12 @@ function SPOReusable(props) {
   }, []);
   
   const getResourceAccessTokenOBO = async () => {
-    fetch(`https://azfun.ngrok.io/api/TeamsOBOHelper?ssoToken=${ssoToken}&tokenFor=spo`).then(async response =>{
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ssoToken }
+    };
+    //fetch(`https://azfun.ngrok.io/api/TeamsOBOHelper?ssoToken=${ssoToken}&tokenFor=spo`).then(async response =>{
+      fetch(collabAppConfig.SPFX_OBOBROKER_URL +`?tokenFor=spo`, requestOptions).then(async response =>{
         const responsePayload = await response.json();
         if (response.ok) {
             setResourceOboToken(responsePayload.access_token);
@@ -48,7 +54,7 @@ function SPOReusable(props) {
     const getSPOSearchResutls = async () => {
         if (!resourceOboToken) { return; }
     
-        const endpoint = `https://m365x229910.sharepoint.com/_api/search/query?querytext=%27*%27&selectproperties=%27Author,Path,Title,Url%27&rowlimit=10`;
+        const endpoint = collabAppConfig.SPFX_SPO_SEARCHQUERY; //`https://m365x229910.sharepoint.com/_api/search/query?querytext=%27*%27&selectproperties=%27Author,Path,Title,Url%27&rowlimit=10`;
         const requestObject = {
         method: 'GET',
         headers: {
@@ -77,9 +83,9 @@ function SPOReusable(props) {
     <div>
         {error && "Error: " + error}
         <br/>
-        {ssoToken && "ID Token: " + ssoToken}
+        {searchResults && <List items={searchResults} color="red" />}
         <br/>
-        {searchResults && <List items={searchResults} />}
+        {ssoToken && "ID Token: " + ssoToken}
     </div>
   );
 }
