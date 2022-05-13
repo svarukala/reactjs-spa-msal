@@ -60,6 +60,13 @@ export const oboRequest = {
     //["api://sridev.ngrok.io/c613e0d1-161d-4ea0-9db4-0f11eeabc2fd/access_as_user"]
 };
 
+const mgtTokenrequest = {
+    scopes: ["Mail.Read","calendars.read", "user.read", "openid", "profile", "people.read", "user.readbasic.all", "files.read", "files.read.all"],
+    //process.env.SPFX_MGT_SCOPES.split(","), 
+    //['Mail.Read','calendars.read', 'user.read', 'openid', 'profile', 'people.read', 'user.readbasic.all', 'files.read', 'files.read.all'],
+    //account: currentAccount,
+};
+
 /**
  * Add here the scopes to request when obtaining an access token for MS Graph API. For more information, see:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md

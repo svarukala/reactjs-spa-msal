@@ -8,8 +8,10 @@ import { ProfileData } from "./components/ProfileData";
 import { callMsGraph } from "./graph";
 import Button from "react-bootstrap/Button";
 import "./styles/App.css";
+import { Providers, ProviderState, SimpleProvider } from '@microsoft/mgt-element';
 import SPOReusable from "./components/SPOReusable";
 import MSGReusable from "./components/MSGReusable";
+import MGTReusable from "./components/MGTReusable";
 
 /**
  * Renders information about the signed-in user or a button to retrieve data about the user
@@ -21,10 +23,15 @@ const CollabContent = () => {
     const [mailData, setMailData] = useState(null);
     const [ssoToken, setSsoToken] = useState(null);
     const [accessToken, setAccessToken] = useState(null);
+    const [mgtAccessToken, setMgtAccessToken] = useState(null);
     const [error, setError] = useState(null);
 
     useEffect(() => {    
-
+        if (!Providers.globalProvider) {
+            console.log('Initializing global provider');
+            Providers.globalProvider = new SimpleProvider(async ()=>{return getAccessTokenForMGT()});  
+            Providers.globalProvider.setState(ProviderState.SignedIn);
+        } 
       }, []);     
 
     function RequestProfileData() {
@@ -70,6 +77,48 @@ const CollabContent = () => {
           });
         });
     }
+
+    function getAccessTokenForMGT() {
+        console.log("Getting access token async");
+        if(mgtAccessToken) return mgtAccessToken;
+        setCurrentAccount(mgtTokenrequest);
+        console.log(currentAccount);
+        return msalInstance
+            .acquireTokenSilent(mgtTokenrequest)
+            .then((tokenResponse) => {
+            console.log("Inside Silent");
+            console.log("Access token: "+ tokenResponse.accessToken);
+            console.log("ID token: "+ tokenResponse.idToken);
+            setMgtAccessToken(tokenResponse.accessToken);
+            return tokenResponse.accessToken;
+            })
+            .catch((err) => {
+            console.log(err);
+            console.log("Silent Failed");
+            if (err instanceof InteractionRequiredAuthError) {
+                return interactionRequired(mgtTokenrequest);
+            } else {
+                console.log("Some other error. Inside SSO.");
+                //const loginPopupRequest: AuthorizationUrlRequest = mgtTokenrequest as AuthorizationUrlRequest;
+                const loginPopupRequest = mgtTokenrequest;
+                loginPopupRequest.loginHint = loginName;
+                return msalInstance
+                .ssoSilent(loginPopupRequest)
+                .then((tokenResponse) => {
+                    setMgtAccessToken(tokenResponse.accessToken);
+                    return tokenResponse.accessToken;
+                })
+                .catch((ssoerror) => {
+                    console.error(ssoerror);
+                    console.error("SSO Failed");
+                    if (ssoerror) {
+                    return interactionRequired(mgtTokenrequest);
+                    }
+                    return null;
+                });
+            }
+            });
+    };
     
     return (
         <>
@@ -92,7 +141,10 @@ const CollabContent = () => {
                     </PivotItem>
                     <PivotItem headerText="MS Graph REST API">
                         <MSGReusable idToken={accessToken} />
-                    </PivotItem>              
+                    </PivotItem>
+                    <PivotItem headerText="MS Graph Toolkit">
+                        <MGTReusable />
+                    </PivotItem>                                  
                 </Pivot>
             }
         </>
